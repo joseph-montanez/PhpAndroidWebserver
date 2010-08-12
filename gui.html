@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"> 
+<html lang="en"> 
+    <head> 
+        <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type"> 
+        <title>Hello World</title> 
+        <style type="text/css"> 
+            input[type=button]{ 
+                width: 90px; 
+                height: 70px; 
+            } 
+
+        </style> 
+        <script type="text/javascript" language="javascript"> 
+            var xmlHttp; 
+            function command(cmd) 
+            { 
+                xmlHttp = GetXmlHttpObject(); 
+                if (xmlHttp==null) { 
+                    return 
+                } 
+                var url = "/" + cmd; 
+                xmlHttp.onreadystatechange = command_stateChanged; 
+                xmlHttp.open("GET",url,true); 
+                xmlHttp.send(null); 
+            } 
+
+            function command_stateChanged() 
+            { 
+                if (xmlHttp.readyState==4 || xmlHttp.readyState=="complete") { 
+                    document.getElementById("eredmeny").innerHTML=xmlHttp.responseText 
+                } 
+            } 
+
+            function GetXmlHttpObject() 
+            { 
+                var objXMLHttp=null 
+                if (window.XMLHttpRequest){ 
+                    objXMLHttp=new XMLHttpRequest() 
+                } 
+                else if (window.ActiveXObject){ 
+                    objXMLHttp=new ActiveXObject("Microsoft.XMLHTTP") 
+                } 
+                return objXMLHttp 
+            } 
+
+        </script> 
+    </head> 
+    <body> 
+        <div id="eredmeny"></div> 
+        <form method="get" action="/?" name="test"><br> 
+            <table style="text-align: left; width: 100px;" border="0" cellpadding="2" cellspacing="2"> 
+                <tbody> 
+                    <tr> 
+                        <td align="undefined" valign="undefined">
+                            <input value="1" 
+                                   name="1" type="button" ontouchstart="command('p1');" 
+                                   ontouchend="command('r1');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="2" 
+                                   name="2" type="button" ontouchstart="command('p2');" 
+                                   ontouchend="command('r2');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="3" 
+                                   name="3" type="button" ontouchstart="command('p3');" 
+                                   ontouchend="command('r3');"/>
+                        </td> 
+                    </tr> 
+                    <tr> 
+                        <td align="undefined" valign="undefined">
+                            <input value="4" 
+                                   name="4" type="button" ontouchstart="command('p4');" 
+                                   ontouchend="command('r4');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="5" 
+                                   name="5" type="button" ontouchstart="command('p5');" 
+                                   ontouchend="command('r5');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="6" 
+                                   name="6" type="button" ontouchstart="command('p6');" 
+                                   ontouchend="command('r6');"/>
+                        </td> 
+                    </tr> 
+                    <tr> 
+                        <td align="undefined" valign="undefined">
+                            <input value="7" 
+                                   name="7" type="button" ontouchstart="command('p7');" 
+                                   ontouchend="command('r7');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="8" 
+                                   name="8" type="button" ontouchstart="command('p8');" 
+                                   ontouchend="command('r8');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="9" 
+                                   name="9" type="button" ontouchstart="command('p9');" 
+                                   ontouchend="command('r9');"/>
+                        </td> 
+                    </tr> 
+                    <tr> 
+                        <td align="undefined" valign="undefined">
+                            <input value="*" name="*" type="button" ontouchstart="command('pa');" 
+                                   ontouchend="command('ra');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="0" name="0" type="button" ontouchstart="command('p0');"  ontouchend="command('r0');"/>
+                        </td> 
+                        <td align="undefined" valign="undefined">
+                            <input value="quit" 
+                                   name="quit" type="button" ontouchstart="command('stop');"/>
+                        </td> 
+                    </tr> 
+                </tbody> 
+            </table> 
+            <br> 
+            <br> 
+        </form> 
+    </body> 
+</html> 
