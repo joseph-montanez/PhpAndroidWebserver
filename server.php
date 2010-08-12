@@ -1,4 +1,22 @@
 <?php
+/*
+Original script is from http://www.jezra.net/blog/proof_of_concept_webserver_written_in_PHP
+Modified for working with PFA by Aryes
+Needs to find out how to send GET variables to the script
+Until you must place some additional code similar to this to the
+beginning of all your scripts:
+$_a=$_SERVER['argv'][1];
+if($_a){
+  $_args_n_vars=explode("&",$_a);
+  foreach($_args_n_vars as $_arg_n_var){
+    list($_var,$_value)=explode("=",$_arg_n_var);
+    $_GET[$_var]=urldecode($_value);
+  }
+}
+
+After you can access all of $_GET variables sent from browser.
+*/
+
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
 
