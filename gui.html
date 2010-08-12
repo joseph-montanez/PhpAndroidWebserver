@@ -10,40 +10,6 @@
             } 
 
         </style> 
-        <script type="text/javascript" language="javascript"> 
-            var xmlHttp; 
-            function command(cmd) 
-            { 
-                xmlHttp = GetXmlHttpObject(); 
-                if (xmlHttp==null) { 
-                    return 
-                } 
-                var url = "/" + cmd; 
-                xmlHttp.onreadystatechange = command_stateChanged; 
-                xmlHttp.open("GET",url,true); 
-                xmlHttp.send(null); 
-            } 
-
-            function command_stateChanged() 
-            { 
-                if (xmlHttp.readyState==4 || xmlHttp.readyState=="complete") { 
-                    document.getElementById("eredmeny").innerHTML=xmlHttp.responseText 
-                } 
-            } 
-
-            function GetXmlHttpObject() 
-            { 
-                var objXMLHttp=null 
-                if (window.XMLHttpRequest){ 
-                    objXMLHttp=new XMLHttpRequest() 
-                } 
-                else if (window.ActiveXObject){ 
-                    objXMLHttp=new ActiveXObject("Microsoft.XMLHTTP") 
-                } 
-                return objXMLHttp 
-            } 
-
-        </script> 
     </head> 
     <body> 
         <div id="eredmeny"></div> 
@@ -119,5 +85,82 @@
             <br> 
             <br> 
         </form> 
+        <script type="text/javascript" language="javascript"> 
+            var xmlHttp; 
+            function command(cmd) 
+            { 
+                xmlHttp = GetXmlHttpObject(); 
+                if (xmlHttp==null) { 
+                    return 
+                } 
+                var url = "/" + cmd; 
+                xmlHttp.onreadystatechange = command_stateChanged; 
+                xmlHttp.open("GET",url,true); 
+                xmlHttp.send(null); 
+            } 
+
+            function command_stateChanged() 
+            { 
+                if (xmlHttp.readyState==4 || xmlHttp.readyState=="complete") { 
+                    document.getElementById("eredmeny").innerHTML=xmlHttp.responseText 
+                } 
+            } 
+
+            function GetXmlHttpObject() 
+            { 
+                var objXMLHttp=null 
+                if (window.XMLHttpRequest){ 
+                    objXMLHttp=new XMLHttpRequest() 
+                } 
+                else if (window.ActiveXObject){ 
+                    objXMLHttp=new ActiveXObject("Microsoft.XMLHTTP") 
+                } 
+                return objXMLHttp 
+            } 
+            
+            function isTouchDevice() {
+               var el = document.createElement('div');
+               el.setAttribute('ongesturestart', 'return;');
+               if(typeof el.ongesturestart == "function"){
+                  return true;
+               } else {
+                  return false
+               }
+            }
+               
+            function bindEvent(ele, evtType, evtFunc, evtCapt) {
+	            if(ele.addEventListener) {
+		            ele.addEventListener(evtType, function(evt){captureEvent(evt, evtFunc);}, false);
+	            } else {
+		            ele.attachEvent('on'+evtType, function(evt){captureEvent(evt, evtFunc);});
+	            }
+            }
+
+            function captureEvent(evt, evtFunc) {
+	            if (!evt) { var e = window.event; }
+	            if (evt.target) { var ele = evt.target; }
+	            else if (evt.srcElement) { var ele = evt.srcElement; }
+	            if (ele.nodeType == 3) { var ele = targ.parentNode; }
+	            newEvt = {};
+	            for(var type in evt) {
+		            newEvt[type] = evt[type];
+	            }
+	            newEvt.target = ele;
+	            evtFunc(newEvt);
+            }
+            
+            var elements = document.getElementsByTagName('input');
+            for(var i = 0; i < elements.length; i++) {
+                var ele = elements[i];
+                if(!isTouchDevice()) {
+                    bindEvent(ele, 'mousedown', function (evt) {
+                        eval(evt.target.getAttribute('ontouchstart'))
+                    });
+                    bindEvent(ele, 'mouseup', function (evt) {
+                        eval(evt.target.getAttribute('ontouchend'))
+                    });
+                }
+            }
+        </script> 
     </body> 
 </html> 
