@@ -2,19 +2,6 @@
 /*
 Original script is from http://www.jezra.net/blog/proof_of_concept_webserver_written_in_PHP
 Modified for working with PFA by Aryes
-Needs to find out how to send GET variables to the script
-Until you must place some additional code similar to this to the
-beginning of all your scripts:
-$_a=$_SERVER['argv'][1];
-if($_a){
-  $_args_n_vars=explode("&",$_a);
-  foreach($_args_n_vars as $_arg_n_var){
-    list($_var,$_value)=explode("=",$_arg_n_var);
-    $_GET[$_var]=urldecode($_value);
-  }
-}
-
-After you can access all of $_GET variables sent from browser.
 */
 
 error_reporting(E_ALL);
@@ -23,24 +10,40 @@ ini_set('display_errors', 'On');
 set_time_limit(0);
 ob_implicit_flush();
 date_default_timezone_set('UTC');
+
+require_once("Response.php");
+require_once("Request.php");
 require_once("Android.php");
-$droid = new Android();
-$running = true;
-$_dir = dirname($_SERVER['PHP_SELF']) . '/';
-global $running, $_dir, $droid;
 
-function start($args) {
-    global $_dir;
-    $file = $_dir . 'gui.html';
-    return file_get_contents($file);
+define('SITE_PATH', dirname($_SERVER['PHP_SELF']));
+
+interface IHandler {
+    public function get ();
 }
 
-function stop($args) {
-    global $running;
-    $running = false;
-    return "Daemon stopping.";
+class Start implements IHandler {
+    public function get() {
+        $file = SITE_PATH . '/gui.html';
+        
+        ob_start();
+        include $file;
+        $output = ob_get_contents();    
+        ob_end_clean();
+        
+        return $output;
+    }
 }
 
+
+class Stop implements IHandler {
+    public function get() {
+        global $running;
+        $running = false;
+        return "Daemon stopping.";
+    }
+}
+
+/*
 function p1($args) {
     global $droid;
     $droid->vibrate(30);
@@ -76,75 +79,52 @@ function r3($args) {
     $droid->vibrate(30);
     return 'Button released';
 }
+*/
 
-echo"starting server... \r\n";
+$droid = new Android();
+$droid->notify("Starting", "Starting server...");
+
 $bind_address = '127.0.0.1';
 $port = 8000;
-$socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("socket_create()failed.");
-socket_bind($socket, $bind_address, $port) or die("socket_bind()failed");
-socket_listen($socket, 5) or die("socket_listen()failed");
+$server_socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("socket_create()failed.");
+socket_bind($server_socket, $bind_address, $port) or die("socket_bind()failed");
+socket_listen($server_socket, 5) or die("socket_listen()failed");
 
-socket_set_block($socket);
-socket_set_option($socket, SOL_SOCKET, SO_LINGER, array('l_onoff' => 1, 'l_linger' => 0));
-
-
+// Stop socket from handing when killed
+socket_set_block($server_socket);
+socket_set_option($server_socket, SOL_SOCKET, SO_LINGER, array('l_onoff' => 1, 'l_linger' => 0));
 
 $droid->notify("Running", "Server is up and running ....");
 $droid->view("http://localhost:$port/start", "text/html");
+
+$running = true;
 do {
-    if (($accept_socket_resource = socket_accept($socket)) < 0) {
+    if (($socket = socket_accept($server_socket)) < 0) {
         echo "socket_accept() failed \r\n";
         break;
     }
-    if (FALSE === ($buffer_text = socket_read($accept_socket_resource, 2048))) {
-        echo "socket_read() failed \r\n";
-        break;
-    }
-    $request_headers = explode("\r\n", $buffer_text);
+    $request  = new Request();
+    $request->setSocket($socket);
+    $request->getBuffer();
+    $request->parseBuffer();
     
-    // Parse the header
-    $fstln = explode(" ", $request_headers[0]);
-    $request = parse_url($fstln[1]);
-    $query = isset($request['query']) ? $request['query'] : '';
-    $path = $request['path'];
-    $params = array();
-    if (!empty($query)) {
-        $params = parse_str($query);
-    }
-    $function = str_replace('/', '', $path);
-    if (function_exists($function)) {
-        $file_contents = $function($params);
+    $response = new Response();
+    $response->setRequest($request);
+    if(class_exists($request->getUri())) {
+        $handler_name = $request->getUri();
+        $handler = new $handler_name();
+        $response->setHandler($handler);
     } else {
-        $file_contents = "Error calling fn: " . $function;
+        // TODO: 404
+        echo "cannot find class " . $request->getUri();
     }
-    echo "Path: $path\n\t$query\n";
-    $file_length = strlen($file_contents);
-    $today = gmdate('D, d M Y H:i:s \G\M\T');
-    $header = array(
-        "HTTP/1.1 200 OK",
-        "Server: Browsergui daemon",
-        "Date: $today",
-        "Content-Type:text/html; charset=iso-8859-2;",
-        "Content-Language: en-us",
-        "Content-Length: $file_length"
-    );
-    $header = implode("\r\n", $header) . "\r\n";
-    
-    // Send Header
-    socket_send($accept_socket_resource, $header, strlen($header), 0);
-    
-    $start_chunk = 0;
-    while ($start_chunk <= $file_length) {
-        $text_chunk = substr($file_contents, $start_chunk, 2048);
-        socket_write($accept_socket_resource, $text_chunk, strlen($text_chunk));
-        $start_chunk+=2048;
-    }
-    socket_close($accept_socket_resource);
+    $response->sendData();
+    unset($response);
     
 } while ($running);
 
-socket_shutdown($socket);
-socket_close($socket);
+socket_shutdown($server_socket);
+socket_close($server_socket);
 
 try {
     $droid->exit();
