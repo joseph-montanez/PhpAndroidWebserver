@@ -33,7 +33,7 @@ class Request
         $path = $request['path'];
         $params = array();
         if (!empty($query)) {
-            $params = parse_str($query);
+            parse_str($query, $params);
             $_GET = $params;
         }
         
